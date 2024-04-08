@@ -1,0 +1,5 @@
+imagenet_mini/
+*.zip
+*.jpeg
+*.jpg
+__pychache__/
