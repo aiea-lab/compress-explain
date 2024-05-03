@@ -2,9 +2,6 @@ import torch
 from torchvision import datasets, transforms
 import os
 import load_model
-import eval
-import numpy as np
-import pruning
 from torch.utils.data import DataLoader
 import os
 import torch.nn as nn
