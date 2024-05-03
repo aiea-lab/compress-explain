@@ -107,8 +107,8 @@ def train(model, epochs=150, lr=0.001, decreasing_lr='80,120', wd=0, save='vanil
                 # new_file = os.path.join(args.logdir, 'best-{}.pth'.format(epoch))
                 # misc.model_snapshot(model, new_file, old_file=old_file, verbose=True)
                 best_acc = acc
-                model_copy = copy.deepcopy(model)
-                for name, module in model.named_modules():
+                model_copy = model.clone()
+                for name, module in model_copy.named_modules():
                     if isinstance(module, torch.nn.Conv2d) or isinstance(module, torch.nn.Linear):
                         prune.remove(module, 'weight')
                 torch.save(model_copy.state_dict(), './saved_models/{}_best.pt'.format(save))
