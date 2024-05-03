@@ -136,35 +136,35 @@ def evaluate(model):
 
 
 train_loader, test_loader = get10(batch_size=200, num_workers=1)
-pretrain_model = load_model.get_GraSP_VGG('./saved_models/pretrain_best_lottery.pt')
-pruning.vanilla_prune(pretrain_model, 0.9, 0.9)
-train(pretrain_model, epochs=10, lr=0.00001,  save='vanilla_pruning_one_shot')
-for name, module in pretrain_model.named_modules():
-    if isinstance(module, torch.nn.Conv2d) or isinstance(module, torch.nn.Linear):
-        prune.remove(module, 'weight')
-torch.save(pretrain_model.state_dict(), './saved_models/vanilla_pruning_one_shot.pt')
+# pretrain_model = load_model.get_GraSP_VGG('./saved_models/pretrain_best_lottery.pt')
+# pruning.vanilla_prune(pretrain_model, 0.9, 0.9)
+# train(pretrain_model, epochs=10, lr=0.00001,  save='vanilla_pruning_one_shot')
+# for name, module in pretrain_model.named_modules():
+#     if isinstance(module, torch.nn.Conv2d) or isinstance(module, torch.nn.Linear):
+#         prune.remove(module, 'weight')
+# torch.save(pretrain_model.state_dict(), './saved_models/vanilla_pruning_one_shot.pt')
 
 pretrain_model = load_model.get_GraSP_VGG('./saved_models/pretrain_best_lottery.pt')
-pruning.vanilla_prune(pretrain_model, 0.18, 0.18)
+pruning.vanilla_prune(pretrain_model, 0.117, 0.117)
 train(pretrain_model, epochs=5, lr=0.00001,  save='vanilla_pruning_iterative_0')
-pruning.vanilla_prune(pretrain_model, 0.18*2, 0.18*2)
+pruning.vanilla_prune(pretrain_model, 0.117*2, 0.117*2)
 train(pretrain_model, epochs=5, lr=0.00001,  save='vanilla_pruning_iterative_1')
-pruning.vanilla_prune(pretrain_model, 0.18*3, 0.18*3)
+pruning.vanilla_prune(pretrain_model, 0.117*3, 0.117*3)
 train(pretrain_model, epochs=5, lr=0.00001,  save='vanilla_pruning_iterative_2')
-pruning.vanilla_prune(pretrain_model, 0.18*4, 0.18*4)
+pruning.vanilla_prune(pretrain_model, 0.117*4, 0.117*4)
 train(pretrain_model, epochs=5, lr=0.00001,  save='vanilla_pruning_iterative_3')
-pruning.vanilla_prune(pretrain_model, 0.18*5, 0.18*5)
+pruning.vanilla_prune(pretrain_model, 0.117*5, 0.117*5)
 train(pretrain_model, epochs=10, lr=0.00001,  save='vanilla_pruning_iterative_4')
 for name, module in pretrain_model.named_modules():
     if isinstance(module, torch.nn.Conv2d) or isinstance(module, torch.nn.Linear):
         prune.remove(module, 'weight')
 torch.save(pretrain_model.state_dict(), './saved_models/vanilla_pruning_iterative.pt')
 
-pretrain_model = load_model.get_GraSP_VGG('./saved_models/pretrain_best_lottery.pt')
-pruning.vanilla_prune(pretrain_model, 0.2, 0.2)
-train(pretrain_model, epochs=5, lr=0.00001,  save='vanilla_pruning_0.2')
-for name, module in pretrain_model.named_modules():
-    if isinstance(module, torch.nn.Conv2d) or isinstance(module, torch.nn.Linear):
-        prune.remove(module, 'weight')
-torch.save(pretrain_model.state_dict(), './saved_models/vanilla_pruning_0.2.pt')
+# pretrain_model = load_model.get_GraSP_VGG('./saved_models/pretrain_best_lottery.pt')
+# pruning.vanilla_prune(pretrain_model, 0.2, 0.2)
+# train(pretrain_model, epochs=5, lr=0.00001,  save='vanilla_pruning_0.2')
+# for name, module in pretrain_model.named_modules():
+#     if isinstance(module, torch.nn.Conv2d) or isinstance(module, torch.nn.Linear):
+#         prune.remove(module, 'weight')
+# torch.save(pretrain_model.state_dict(), './saved_models/vanilla_pruning_0.2.pt')
 
