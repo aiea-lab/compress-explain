@@ -106,7 +106,7 @@ def train(model, epochs=150, lr=0.001, decreasing_lr='80,120', wd=0, save='vanil
                 # new_file = os.path.join(args.logdir, 'best-{}.pth'.format(epoch))
                 # misc.model_snapshot(model, new_file, old_file=old_file, verbose=True)
                 best_acc = acc
-                torch.save(model.state_dict(), '/saved_models/{}_best.pt'.format(save))
+                torch.save(model.state_dict(), './saved_models/{}_best.pt'.format(save))
                 # old_file = new_file
     print("Total Elapse: {:.2f}, Best Result: {:.3f}%".format(time.time()-t_begin, best_acc))
 
