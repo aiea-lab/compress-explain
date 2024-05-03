@@ -2,6 +2,7 @@ import torch
 from torchvision import datasets, transforms
 import os
 import load_model
+import pruning
 from torch.utils.data import DataLoader
 import os
 import torch.nn as nn
@@ -131,18 +132,18 @@ def evaluate(model):
 
 train_loader, test_loader = get10(batch_size=200, num_workers=1)
 pretrain_model = load_model.get_GraSP_VGG('./saved_models/pretrain_best_lottery.pt')
-pretrain_model.pruneing.vanilla_prune(0.8, 0.9)
+pruning.vanilla_prune(pretrain_model, 0.8, 0.9)
 train(pretrain_model, epochs=10, lr=0.00001,  save='vanilla_pruning_one_shot')
 
 pretrain_model = load_model.get_GraSP_VGG('./saved_models/pretrain_best_lottery.pt')
-pretrain_model.pruneing.vanilla_prune(0.16, 0.2)
+pruning.vanilla_prune(pretrain_model, 0.16, 0.2)
 train(pretrain_model, epochs=5, lr=0.00001,  save='vanilla_pruning_iterative_0')
-pretrain_model.pruneing.vanilla_prune(0.16, 0.2)
+pruning.vanilla_prune(pretrain_model, 0.16, 0.2)
 train(pretrain_model, epochs=5, lr=0.00001,  save='vanilla_pruning_iterative_1')
-pretrain_model.pruneing.vanilla_prune(0.16, 0.2)
+pruning.vanilla_prune(pretrain_model, 0.16, 0.2)
 train(pretrain_model, epochs=5, lr=0.00001,  save='vanilla_pruning_iterative_2')
-pretrain_model.pruneing.vanilla_prune(0.16, 0.2)
+pruning.vanilla_prune(pretrain_model, 0.16, 0.2)
 train(pretrain_model, epochs=5, lr=0.00001,  save='vanilla_pruning_iterative_3')
-pretrain_model.pruneing.vanilla_prune(0.16, 0.1)
+pruning.vanilla_prune(pretrain_model, 0.16, 0.1)
 train(pretrain_model, epochs=10, lr=0.00001,  save='vanilla_pruning_iterative_4')
 
