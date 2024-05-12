@@ -113,7 +113,7 @@ def validate(model, testLoader, loss_func):
             'Test Loss {:.4f}\t\tTime {:.2f}s\n'
             .format(float(losses.avg), (current_time - start_time))
         )
-    return losses.avg.item()
+    return losses.avg
 
 
 def train(model, optimizer, trainLoader, loss_func, epoch):
