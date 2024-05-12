@@ -117,7 +117,7 @@ def validate(model, testLoader, loss_func):
 
 
 def train(model, optimizer, trainLoader, loss_func, epoch):
-    train_batch_size = 64
+    train_batch_size = 256
     model.train()
     losses = AverageMeter(':.4e')
     print_freq = len(trainLoader.dataset) // train_batch_size // 10
@@ -140,7 +140,7 @@ def train(model, optimizer, trainLoader, loss_func, epoch):
                 'Epoch[{}] ({}/{}):\t'
                 'Loss {:.4f}\t\t'
                 'Time {:.2f}s'.format(
-                    epoch, batch * targets.inputs.shape[0], len(trainLoader.dataset),
+                    epoch, batch * targets.shape[0], len(trainLoader.dataset),
                     float(losses.avg), cost_time
                 )
             )
