@@ -182,7 +182,7 @@ for epoch in range(num_epochs):
     train(model, optimizer, train_loader, loss_func, epoch)
     loss = validate(model, val_loader, loss_func)
     if loss < bst_loss:
-        torch.save('/persistentvol/compress-explain/saved_models/resnet_pretrain_best_{}.pt'.format(epoch), model.state_dict())
+        torch.save(model.state_dict(), '/persistentvol/compress-explain/saved_models/resnet_pretrain_best_{}.pt'.format(epoch))
         bst_loss = loss
         print('Saved best model to /persistentvol/compress-explain/saved_models/resnet_pretrain_best_{}.pt'.format(epoch))
     
