@@ -1,64 +1,75 @@
 import torch
 from torchvision import datasets, transforms, models
 from torch.utils.data import DataLoader
-import os
 import torch.nn as nn
 import time
-import torch.nn.functional as F
 import torch.optim as optim
 import numpy as np
+from PIL import Image
 
+import numpy as np
+import torch
+from PIL import Image
+import torchvision.transforms as transforms
+from torchvision import datasets
+from xml.etree.ElementTree import Element as ET_Element
+from typing import Any, Dict, Tuple
+import collections
+from xml.etree.ElementTree import parse as ET_parse
 device = torch.device(f"cuda:0") if torch.cuda.is_available() else 'cpu'
-print(device)
 
-def getVOC(batch_size, data_root='/tmp/public_dataset/pytorch', train=True, val=True, **kwargs):
-    data_root = os.path.expanduser(os.path.join(data_root, 'pascalVOC-data'))
-    num_workers = kwargs.setdefault('num_workers', 1)
-    kwargs.pop('input_size', None)
-    print("Building VOCDetection data loader with {} workers".format(num_workers))
-    ds = []
-    if train:
-        train_loader = torch.utils.data.DataLoader(
-            datasets.VOCDetection(
-                root=data_root, image_set='train', download=True,
-                transform=transforms.Compose([
-                    transforms.RandomChoice([
-                        transforms.CenterCrop(300),
-                        transforms.RandomResizedCrop(300, scale=(0.80, 1.0)),
-                        ]),
-                    transforms.RandomHorizontalFlip(),
-                    transforms.ToTensor(),
-                    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-                ])),
-            batch_size=batch_size, shuffle=True, **kwargs)
-        ds.append(train_loader)
-    if val:
-        test_loader = torch.utils.data.DataLoader(
-            datasets.VOCDetection(
-                root=data_root, image_set='val', download=True,
-                transform=transforms.Compose([
-                    transforms.Resize(330), 
-                    transforms.CenterCrop(300),
-                    transforms.ToTensor(),
-                    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-                ])),
-            batch_size=batch_size, shuffle=False, **kwargs)
-        ds.append(test_loader)
-    ds = ds[0] if len(ds) == 1 else ds
-    return ds
+class VOCnew(datasets.VOCDetection):
+    classes = ('aeroplane', 'bicycle', 'bird', 'boat',
+                    'bottle', 'bus', 'car', 'cat', 'chair',
+                    'cow', 'diningtable', 'dog', 'horse',
+                    'motorbike', 'person', 'pottedplant',
+                    'sheep', 'sofa', 'train', 'tvmonitor')
+    class_to_ind = dict(zip(classes, range(len(classes))))
+    
+    def __getitem__(self, index: int) -> Tuple[Any, Any]:
+        """
+        Args:
+            index (int): Index
 
-train_loader, test_loader = getVOC(batch_size=256, num_workers=4)
+        Returns:
+            tuple: (image, target) where target is a dictionary of the XML tree.
+        """
+        img = Image.open(self.images[index]).convert("RGB")
+        target = self.parse_voc_xml(ET_parse(self.annotations[index]).getroot())
 
-model = models.resnet18(num_classes=20)
-model.to(device)
+        if self.transforms is not None:
+            img, target = self.transforms(img, target)
 
-num_epochs = 160
-learning_rate = 0.1
-loss_func = nn.CrossEntropyLoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, weight_decay = 0.0005, momentum = 0.9)
+        return img, target
+    
+    
 
-scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, num_epochs)
+    @staticmethod
+    def parse_voc_xml(node: ET_Element) -> Dict[str, Any]:
+        
 
+        voc_dict: Dict[str, Any] = {}
+        children = list(node)
+        if children:
+            def_dic: Dict[str, Any] = collections.defaultdict(list)
+            for dc in map(datasets.VOCDetection.parse_voc_xml, children):
+                for ind, v in dc.items():
+                    def_dic[ind].append(v)
+            if node.tag == "annotation":
+                def_dic["object"] = [def_dic["object"]]
+                objs = [def_dic["object"]]
+                lbl = np.zeros(len(VOCnew.classes))
+                for ix, obj in enumerate(objs[0][0]):        
+                    obj_class = VOCnew.class_to_ind[obj['name']]
+                    lbl[obj_class] = 1
+                return lbl
+            voc_dict = {node.tag: {ind: v[0] if len(v) == 1 else v for ind, v in def_dic.items()}}
+        if node.text:
+            text = node.text.strip()
+            if not children:
+                voc_dict[node.tag] = text
+        return voc_dict
+    
 class AverageMeter(object):
     """Computes and stores the average and current value"""
     def __init__(self, name, fmt=':f'):
@@ -82,67 +93,10 @@ class AverageMeter(object):
         fmtstr = '{name} {val' + self.fmt + '} ({avg' + self.fmt + '})'
         return fmtstr.format(**self.__dict__)
     
-"""Computes the precision@k for the specified values of k"""
-def accuracy(output, target, topk=(1,)):
-    with torch.no_grad():
-        maxk = max(topk)
-        batch_size = target.size(0)
-
-        _, pred = output.topk(maxk, 1, True, True)
-        pred = pred.t()
-        correct = pred.eq(target.view(1, -1).expand_as(pred))
-
-        res = []
-        for k in topk:
-            correct_k = correct[:k].view(-1).float().sum(0,keepdim=True)
-            res.append(correct_k.mul_(100.0/batch_size))
-        return res
-
-def train(model, optimizer, trainLoader, epoch):
-    train_batch_size = 256
-
-    model.train()
-    losses = AverageMeter(':.4e')
-    accurary = AverageMeter(':6.3f')
-    print_freq = len(trainLoader.dataset) // train_batch_size // 10
-    #print_freq = 1
-    #import pdb;pdb.set_trace()
-    start_time = time.time()
-    i = 0 
-    pop_config = np.array([0] * 32)
-    for batch, (inputs, targets) in enumerate(trainLoader):
-        i+=1
-        inputs, targets = inputs.to(device), targets.to(device)
-        optimizer.zero_grad()
-        output = model(inputs)
-        loss = loss_func(output, targets)
-        loss.backward()
-        losses.update(loss.item(), inputs.size(0))
-        optimizer.step()
-        prec1 = accuracy(output, targets)
-        accurary.update(prec1[0], inputs.size(0))
-
-        if batch % print_freq == 0 and batch != 0:
-            current_time = time.time()
-            cost_time = current_time - start_time
-            print(
-                'Epoch[{}] ({}/{}):\t'
-                'Loss {:.4f}\t'
-                'Accurary {:.2f}%\t\t'
-                'Time {:.2f}s'.format(
-                    epoch, batch * 256, len(trainLoader.dataset),
-                    float(losses.avg), float(accurary.avg), cost_time
-                )
-            )
-            start_time = current_time
-    print("epoch{} pop_configuration {}".format(epoch, pop_config))
-
-def validate(model, testLoader):
-    global best_acc
+def validate(model, testLoader, loss_func):
     model.eval()
 
     losses = AverageMeter(':.4e')
-    accurary = AverageMeter(':6.3f')
 
     start_time = time.time()
 
@@ -153,23 +107,82 @@ def validate(model, testLoader):
             loss = loss_func(outputs, targets)
 
             losses.update(loss.item(), inputs.size(0))
-            predicted = accuracy(outputs, targets)
-            accurary.update(predicted[0], inputs.size(0))
 
         current_time = time.time()
         print(
             'Test Loss {:.4f}\tAccurary {:.2f}%\t\tTime {:.2f}s\n'
-            .format(float(losses.avg), float(accurary.avg), (current_time - start_time))
+            .format(float(losses.avg), (current_time - start_time))
         )
-    return accurary.avg
+    return losses.avg.item()
 
+
+def train(model, optimizer, trainLoader, loss_func, epoch):
+    train_batch_size = 64
+    model.train()
+    losses = AverageMeter(':.4e')
+    print_freq = len(trainLoader.dataset) // train_batch_size // 10
+    start_time = time.time()
+    i = 0 
+    for batch, (inputs, targets) in enumerate(trainLoader):
+        i+=1
+        inputs, targets = inputs.to(device), targets.to(device)
+        optimizer.zero_grad()
+        output = model(inputs)
+        loss = loss_func(output, targets)
+        loss.backward()
+        losses.update(loss.item(), inputs.size(0))
+        optimizer.step()
+
+        if batch % print_freq == 0 and batch != 0:
+            current_time = time.time()
+            cost_time = current_time - start_time
+            print(
+                'Epoch[{}] ({}/{}):\t'
+                'Loss {:.4f}\t\t'
+                'Time {:.2f}s'.format(
+                    epoch, batch * targets.inputs.shape[0], len(trainLoader.dataset),
+                    float(losses.avg), cost_time
+                )
+            )
+            start_time = current_time
+
+train_dataset = VOCnew(root=r'/tmp/public_dataset/pytorch/pascalVOC-data', image_set='train', download=True,
+                transform=transforms.Compose([
+                    transforms.Resize(330),
+                    transforms.Pad(30),
+                    transforms.RandomCrop(300),
+                    transforms.RandomHorizontalFlip(),
+                    transforms.ToTensor(),
+                    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+                ]))
+
+val_dataset = VOCnew(root=r'/tmp/public_dataset/pytorch/pascalVOC-data', image_set='val', download=False,
+                transform=transforms.Compose([
+                    transforms.Resize(330), 
+                    transforms.CenterCrop(300),
+                    transforms.ToTensor(),
+                    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+                ]))
+
+# model = resnet().to(device)
+model = models.resnet18(num_classes=20).to(device)
+num_epochs = 20
+learning_rate = 0.1
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, weight_decay = 0.0005, momentum = 0.9)
+scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, num_epochs)
+loss_func = nn.BCEWithLogitsLoss()
+batch_size = 256
+
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
+
+bst_loss = 1e10
 
 for epoch in range(num_epochs):
-    train(model, optimizer, train_loader, epoch)
-    test_acc = validate(model, test_loader)
-    scheduler.step()
-
-    is_best = best_acc < test_acc
-    best_acc = max(best_acc, test_acc)
-    if is_best:
-        torch.save(model.state_dict(), '../saved_models/resnet18_pretrain_best_{:.3f}.pt'.format(best_acc))
+    train(model, optimizer, train_loader, loss_func, epoch)
+    loss = validate(model, val_loader, loss_func)
+    if loss < bst_loss:
+        torch.save('/persistentvol/compress-explain/saved_models/resnet_pretrain_best_{}.pt'.format(epoch), model.state_dict())
+        bst_loss = loss
+        print('Saved best model to /persistentvol/compress-explain/saved_models/resnet_pretrain_best_{}.pt'.format(epoch))
+    
