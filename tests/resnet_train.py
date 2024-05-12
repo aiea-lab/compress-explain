@@ -110,7 +110,7 @@ def validate(model, testLoader, loss_func):
 
         current_time = time.time()
         print(
-            'Test Loss {:.4f}\tAccurary {:.2f}%\t\tTime {:.2f}s\n'
+            'Test Loss {:.4f}\t\tTime {:.2f}s\n'
             .format(float(losses.avg), (current_time - start_time))
         )
     return losses.avg.item()
