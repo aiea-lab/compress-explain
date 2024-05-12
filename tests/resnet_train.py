@@ -166,7 +166,7 @@ val_dataset = VOCnew(root=r'/tmp/public_dataset/pytorch/pascalVOC-data', image_s
 
 # model = resnet().to(device)
 model = models.resnet18(num_classes=20).to(device)
-num_epochs = 20
+num_epochs = 160
 learning_rate = 0.1
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, weight_decay = 0.0005, momentum = 0.9)
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, num_epochs)
