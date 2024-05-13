@@ -89,6 +89,9 @@ def validate(model, testLoader, loss_func):
             loss = loss_func(outputs, targets)
 
             losses.update(loss.item(), inputs.size(0))
+            if batch_idx == 0:
+                print(outputs[0])
+                print(targets[0])
 
         current_time = time.time()
         print(
