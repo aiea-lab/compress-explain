@@ -102,7 +102,7 @@ def validate(model, testLoader, loss_func):
 
 
 def train(model, optimizer, trainLoader, loss_func, epoch):
-    train_batch_size = 256
+    train_batch_size = 128
     model.train()
     losses = AverageMeter(':.4e')
     print_freq = len(trainLoader.dataset) // train_batch_size // 10
@@ -156,7 +156,7 @@ learning_rate = 0.1
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, weight_decay = 0.0005, momentum = 0.9)
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, num_epochs)
 loss_func = nn.MultiLabelSoftMarginLoss()
-batch_size = 256
+batch_size = 128
 
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
 val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
