@@ -34,7 +34,7 @@ class GraSP_VGG(nn.Module):
         self.dataset = dataset
         num_classes = 20
         self.feature = self.make_layers(cfg, batchnorm)
-        self.classifier = nn.Linear(cfg[-1], num_classes)
+        self.classifier = nn.Linear(cfg[-1]*4, num_classes)
 
     def make_layers(self, cfg, batch_norm=False):
         layers = []
@@ -53,7 +53,7 @@ class GraSP_VGG(nn.Module):
 
     def forward(self, x):
         x = self.feature(x)
-        x = nn.AvgPool2d(2)(x)
+        x = nn.AvgPool2d(9)(x)
         x = x.view(x.size(0), -1)
         y = self.classifier(x)
         return y
