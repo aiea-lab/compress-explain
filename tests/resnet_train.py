@@ -24,25 +24,7 @@ class VOCnew(datasets.VOCDetection):
                     'cow', 'diningtable', 'dog', 'horse',
                     'motorbike', 'person', 'pottedplant',
                     'sheep', 'sofa', 'train', 'tvmonitor')
-    class_to_ind = dict(zip(classes, range(len(classes))))
-    
-    def __getitem__(self, index: int) -> Tuple[Any, Any]:
-        """
-        Args:
-            index (int): Index
-
-        Returns:
-            tuple: (image, target) where target is a dictionary of the XML tree.
-        """
-        img = Image.open(self.images[index]).convert("RGB")
-        target = self.parse_voc_xml(ET_parse(self.annotations[index]).getroot())
-
-        if self.transforms is not None:
-            img, target = self.transforms(img, target)
-
-        return img, target
-    
-    
+    class_to_ind = dict(zip(classes, range(len(classes))))   
 
     @staticmethod
     def parse_voc_xml(node: ET_Element) -> Dict[str, Any]:
@@ -170,7 +152,7 @@ num_epochs = 160
 learning_rate = 0.1
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, weight_decay = 0.0005, momentum = 0.9)
 scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, num_epochs)
-loss_func = nn.BCEWithLogitsLoss()
+loss_func = nn.MultiLabelSoftMarginLoss()
 batch_size = 256
 
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
