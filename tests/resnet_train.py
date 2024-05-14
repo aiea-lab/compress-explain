@@ -150,7 +150,7 @@ val_dataset = VOCnew(root=r'/tmp/public_dataset/pytorch/pascalVOC-data', image_s
                 ]))
 
 # model = resnet().to(device)
-model = models.resnet18(num_classes=20).to(device)
+model = models.resnet50(num_classes=20).to(device)
 num_epochs = 160
 learning_rate = 0.1
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, weight_decay = 0.0005, momentum = 0.9)
@@ -167,7 +167,7 @@ for epoch in range(num_epochs):
     train(model, optimizer, train_loader, loss_func, epoch)
     loss = validate(model, val_loader, loss_func)
     if loss < bst_loss:
-        torch.save(model.state_dict(), '/persistentvol/compress-explain/saved_models/resnet_pretrain_best_{}.pt'.format(epoch))
+        torch.save(model.state_dict(), '/persistentvol/compress-explain/saved_models/resnet50_pretrain_best_{}.pt'.format(epoch))
         bst_loss = loss
-        print('Saved best model to /persistentvol/compress-explain/saved_models/resnet_pretrain_best_{}.pt'.format(epoch))
+        print('Saved best model to /persistentvol/compress-explain/saved_models/resnet50_pretrain_best_{}.pt'.format(epoch))
     
