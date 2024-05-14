@@ -114,7 +114,7 @@ def validate(model, testLoader, loss_func):
 
     with torch.no_grad():
         for batch_idx, (inputs, targets) in enumerate(testLoader):
-            inputs, targets = inputs.to(device), targets.to(device)
+            inputs, targets = inputs.to(device), torch.unsqueeze(targets[:,31], -1).float().to(device).to(device)
             outputs = model(inputs)
             loss = loss_func(outputs, targets)
 
