@@ -162,7 +162,7 @@ def train(model, optimizer, trainLoader, loss_func, epoch):
             start_time = current_time
 
 
-train_loader, val_loader = getCeleba(batch_size=128, num_workers=4, download=True)
+train_loader, val_loader = getCeleba(data_root='/home/joyvan/', batch_size=128, num_workers=4, download=False)
 
 # model = resnet().to(device)
 model = GraSP_VGG(dataset='celeba', input_size=128).to(device)
