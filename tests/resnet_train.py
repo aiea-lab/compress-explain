@@ -131,7 +131,7 @@ def train(model, optimizer, trainLoader, loss_func, epoch):
             )
             start_time = current_time
 
-train_dataset = VOCnew(root=r'/mnt/data/public_dataset/pytorch/pascalVOC-data', image_set='train', download=True,
+train_dataset = VOCnew(root=r'/tmp/public_dataset/pytorch/pascalVOC-data', image_set='train', download=True,
                 transform=transforms.Compose([
                     transforms.Resize(330),
                     transforms.Pad(30),
@@ -141,7 +141,7 @@ train_dataset = VOCnew(root=r'/mnt/data/public_dataset/pytorch/pascalVOC-data', 
                     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
                 ]))
 
-val_dataset = VOCnew(root=r'/mnt/data/public_dataset/pytorch/pascalVOC-data', image_set='val', download=False,
+val_dataset = VOCnew(root=r'/tmp/public_dataset/pytorch/pascalVOC-data', image_set='val', download=False,
                 transform=transforms.Compose([
                     transforms.Resize(330), 
                     transforms.CenterCrop(300),
