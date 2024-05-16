@@ -180,9 +180,10 @@ class VocModel(nn.Module):
 model = VocModel(num_classes=1, pretrained=False).to(device)
 
 loss_func=nn.BCEWithLogitsLoss()
-optimizer=optim.SGD(model.parameters(),lr=0.1,momentum=0.9)
-scheduler=optim.lr_scheduler.CyclicLR(optimizer, base_lr=0.0000001, max_lr=1,mode='exp_range')
-grad_clip = 0.1
+# optimizer=optim.SGD(model.parameters(),lr=0.1,momentum=0.9)
+# scheduler=optim.lr_scheduler.CyclicLR(optimizer, base_lr=0.0000001, max_lr=1,mode='exp_range')
+grad_clip = None
+optimizer = optim.SGD(model.parameters(), lr = 0.01, momentum = 0.9, weight_decay = 1e-5)
 epochs = 10
 # max_lr = 0.001
 # grad_clip = 0.1
