@@ -175,7 +175,7 @@ weight_decay = 1e-4
 # learning_rate = 0.1
 # scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, num_epochs)
 # loss_func = nn.MultiLabelSoftMarginLoss()
-loss_func = nn.BCEWithLogitsLos()
+loss_func = nn.BCEWithLogitsLoss()
 batch_size = 128
 
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
