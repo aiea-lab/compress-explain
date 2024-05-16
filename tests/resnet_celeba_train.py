@@ -164,7 +164,7 @@ def train(model, optimizer, trainLoader, loss_func, epoch):
             start_time = current_time
 
 
-train_loader, val_loader = getCeleba(data_root='/tmp', batch_size=128, num_workers=4, download=False)
+train_loader, val_loader = getCeleba(data_root='/tmp', batch_size=128, num_workers=4, download=True)
 
 class VocModel(nn.Module):
     def __init__(self, num_classes, pretrained=True):
