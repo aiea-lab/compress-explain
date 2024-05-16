@@ -115,6 +115,8 @@ def train(model, optimizer, trainLoader, loss_func, epoch):
         output = model(inputs)
         loss = loss_func(output, targets)
         loss.backward()
+        if grad_clip:
+            nn.utils.clip_grad_value_(model.parameters(), grad_clip)
         losses.update(loss.item(), inputs.size(0))
         optimizer.step()
 
@@ -150,24 +152,44 @@ val_dataset = VOCnew(root=r'/tmp/public_dataset/pytorch/pascalVOC-data', image_s
                 ]))
 
 # model = resnet().to(device)
-model = models.resnet50(num_classes=20).to(device)
-num_epochs = 160
-learning_rate = 0.1
-optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, weight_decay = 0.0005, momentum = 0.9)
-scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, num_epochs)
-loss_func = nn.MultiLabelSoftMarginLoss()
+
+class VocModel(nn.Module):
+    def __init__(self, num_classes, pretrained=True):
+        super().__init__()
+        # Use a pretrained model
+        self.network = models.resnet34(pretrained=pretrained)
+        # Replace last layer
+        self.network.fc = nn.Linear(self.network.fc.in_features, num_classes)
+
+    def forward(self, xb):
+        return self.network(xb)
+
+model = VocModel(num_classes=20).to(device)
+epochs = 10
+max_lr = 0.001
+grad_clip = 0.1
+weight_decay = 1e-4
+# opt_func = torch.optim.Adam
+
+# num_epochs = 160
+# learning_rate = 0.1
+# scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, num_epochs)
+# loss_func = nn.MultiLabelSoftMarginLoss()
+loss_func = nn.BCEWithLogitsLos()
 batch_size = 128
 
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
 val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
 
 bst_loss = 1e10
+optimizer = torch.optim.Adam(model.parameters(), lr=max_lr, weight_decay = weight_decay, momentum = 0.9)
+sched = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr, epochs=epochs,
+                                            steps_per_epoch=len(train_loader))
 
-for epoch in range(num_epochs):
+for epoch in range(epochs):
     train(model, optimizer, train_loader, loss_func, epoch)
     loss = validate(model, val_loader, loss_func)
     if loss < bst_loss:
-        torch.save(model.state_dict(), '/persistentvol/compress-explain/saved_models/resnet50_pretrain_best_{}.pt'.format(epoch))
+        torch.save(model.state_dict(), '/persistentvol/compress-explain/saved_models/resnet34_pretrain_best_{}.pt'.format(epoch))
         bst_loss = loss
-        print('Saved best model to /persistentvol/compress-explain/saved_models/resnet50_pretrain_best_{}.pt'.format(epoch))
-    
+        print('Saved best model to /persistentvol/compress-explain/saved_models/resnet34_pretrain_best_{}.pt'.format(epoch))
