@@ -230,11 +230,9 @@ training(model, 0.6)
 
 # prune pass 4
 vanilla_prune(model, conv_prune=0.8, linear_prune=0.8)
-vanilla_prune(model)
 training(model, 0.8)
 # save_model(model, 'prune_pass_4.pt')
 
 vanilla_prune(model, conv_prune=0.9, linear_prune=0.9)
-vanilla_prune(model)
 training(model, 0.9)
 # save_model(model, 'prune_pass_4.pt')
