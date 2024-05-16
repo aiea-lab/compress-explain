@@ -162,7 +162,6 @@ val_dataset = VOCnew(root=r'/tmp/public_dataset/pytorch/pascalVOC-data', image_s
                     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
                 ]))
 
-# model = resnet().to(device)
 
 class VocModel(nn.Module):
     def __init__(self, num_classes, pretrained=True):
@@ -215,27 +214,27 @@ def vanilla_prune(model, conv_prune=0.3, linear_prune=0.6):
             prune.l1_unstructured(module, name='weight', amount=linear_prune)
 
 # prune pass 1
-model = vanilla_prune(model, conv_prune=0.2, linear_prune=0.2)
-model = training(model, 0.2)
+vanilla_prune(model, conv_prune=0.2, linear_prune=0.2)
+training(model, 0.2)
 # save_model(model, 'prune_pass_1.pt')
 
 # prune pass 2
-model = vanilla_prune(model, conv_prune=0.4, linear_prune=0.4)
-model = training(model, 0.4)
+vanilla_prune(model, conv_prune=0.4, linear_prune=0.4)
+training(model, 0.4)
 # save_model(model, 'prune_pass_2.pt')
 
 # prune pass 3
-model = vanilla_prune(model, conv_prune=0.6, linear_prune=0.6)
-model = training(model, 0.6)
+vanilla_prune(model, conv_prune=0.6, linear_prune=0.6)
+training(model, 0.6)
 # save_model(model, 'prune_pass_3.pt')
 
 # prune pass 4
-model = vanilla_prune(model, conv_prune=0.8, linear_prune=0.8)
-model = vanilla_prune(model)
-model = training(model, 0.8)
+vanilla_prune(model, conv_prune=0.8, linear_prune=0.8)
+vanilla_prune(model)
+training(model, 0.8)
 # save_model(model, 'prune_pass_4.pt')
 
-model = vanilla_prune(model, conv_prune=0.9, linear_prune=0.9)
-model = vanilla_prune(model)
-model = training(model, 0.9)
+vanilla_prune(model, conv_prune=0.9, linear_prune=0.9)
+vanilla_prune(model)
+training(model, 0.9)
 # save_model(model, 'prune_pass_4.pt')
