@@ -177,14 +177,19 @@ class VocModel(nn.Module):
     def forward(self, xb):
         return self.network(xb)
 
-model = VocModel(num_classes=1).to(device)
-epochs = 10
-max_lr = 0.001
+model = VocModel(num_classes=1, pretrained=False).to(device)
+
+criterion=nn.BCEWithLogitsLoss()
+optimizer=optim.SGD(model.parameters(),lr=0.1,momentum=0.9)
+scheduler=optim.lr_scheduler.CyclicLR(optimizer, base_lr=0.0000001, max_lr=1,mode='exp_range')
 grad_clip = 0.1
-weight_decay = 1e-4
-optimizer = torch.optim.Adam(model.parameters(), lr=max_lr, weight_decay = weight_decay)
-sched = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr, epochs=epochs,
-                                            steps_per_epoch=len(train_loader))
+epochs = 10
+# max_lr = 0.001
+# grad_clip = 0.1
+# weight_decay = 1e-4
+# optimizer = torch.optim.Adam(model.parameters(), lr=max_lr, weight_decay = weight_decay)
+# sched = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr, epochs=epochs,
+#                                             steps_per_epoch=len(train_loader))
 
 
 # model = resnet().to(device)
@@ -193,7 +198,7 @@ sched = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr, epochs=epochs,
 # learning_rate = 0.1
 # optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, weight_decay = 0.0005, momentum = 0.9)
 # scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, num_epochs)
-loss_func = nn.BCEWithLogitsLoss()
+# loss_func = nn.BCEWithLogitsLoss()
 batch_size = 128
 
 bst_loss = 1e10
