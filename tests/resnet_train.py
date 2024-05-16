@@ -167,7 +167,7 @@ class VocModel(nn.Module):
 model = VocModel(num_classes=20, pretrained=False).to(device)
 model.load_state_dict(torch.load('../saved_models/resnet34_pretrain_best_9.pt'))
 epochs = 20
-max_lr = 0.001
+max_lr = 0.0001
 grad_clip = 0.1
 weight_decay = 1e-4
 # opt_func = torch.optim.Adam
