@@ -182,7 +182,7 @@ train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, nu
 val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
 
 bst_loss = 1e10
-optimizer = torch.optim.Adam(model.parameters(), lr=max_lr, weight_decay = weight_decay, momentum = 0.9)
+optimizer = torch.optim.Adam(model.parameters(), lr=max_lr, weight_decay = weight_decay)
 sched = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr, epochs=epochs,
                                             steps_per_epoch=len(train_loader))
 
