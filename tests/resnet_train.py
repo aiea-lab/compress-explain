@@ -164,8 +164,9 @@ class VocModel(nn.Module):
     def forward(self, xb):
         return self.network(xb)
 
-model = VocModel(num_classes=20).to(device)
-epochs = 10
+model = VocModel(num_classes=20, pretrained=False).to(device)
+model.load_state_dict(torch.load('../saved_models/resnet34_pretrain_best_9.pt'))
+epochs = 20
 max_lr = 0.001
 grad_clip = 0.1
 weight_decay = 1e-4
@@ -190,6 +191,6 @@ for epoch in range(epochs):
     train(model, optimizer, train_loader, loss_func, epoch)
     loss = validate(model, val_loader, loss_func)
     if loss < bst_loss:
-        torch.save(model.state_dict(), '/persistentvol/compress-explain/saved_models/resnet34_pretrain_best_{}.pt'.format(epoch))
+        torch.save(model.state_dict(), '/persistentvol/compress-explain/saved_models/resnet34_pretrain_best_{}.pt'.format(epoch+10))
         bst_loss = loss
-        print('Saved best model to /persistentvol/compress-explain/saved_models/resnet34_pretrain_best_{}.pt'.format(epoch))
+        print('Saved best model to /persistentvol/compress-explain/saved_models/resnet34_pretrain_best_{}.pt'.format(epoch+10))
