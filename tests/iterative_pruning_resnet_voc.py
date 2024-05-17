@@ -164,10 +164,10 @@ val_dataset = VOCnew(root=r'/tmp/public_dataset/pytorch/pascalVOC-data', image_s
 
 
 class VocModel(nn.Module):
-    def __init__(self, num_classes, pretrained=True):
+    def __init__(self, num_classes):
         super().__init__()
         # Use a pretrained model
-        self.network = models.resnet34(pretrained=pretrained)
+        self.network = models.resnet34()
         # Replace last layer
         self.network.fc = nn.Linear(self.network.fc.in_features, num_classes)
 
@@ -175,7 +175,7 @@ class VocModel(nn.Module):
         return self.network(xb)
 
 model = VocModel(num_classes=20, pretrained=False).to(device)
-model.load_state_dict(torch.load('../saved_models/resnet34_pretrain_best_9.pt'))
+model.load_state_dict(torch.load('../saved_models/resnet34_pretrain_best_25.pt'))
 epochs = 10
 max_lr = 0.001
 grad_clip = 0.1
@@ -195,8 +195,7 @@ val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_w
 def training(model, prune_level):
     bst_loss = 1e10
     optimizer = torch.optim.Adam(model.parameters(), lr=max_lr, weight_decay = weight_decay)
-    sched = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr, epochs=epochs,
-                                                steps_per_epoch=len(train_loader))
+    sched = optim.lr_scheduler.CosineAnnealingLR(optimizer, epochs, 0.00001)
 
     for epoch in range(epochs):
         train(model, optimizer, train_loader, loss_func, epoch)
@@ -205,6 +204,7 @@ def training(model, prune_level):
             torch.save(model.state_dict(), '/persistentvol/compress-explain/saved_models/resnet34_unstructure_prune_voc_{}.pt'.format(prune_level))
             bst_loss = loss
             print('Saved best model to /persistentvol/compress-explain/saved_models/resnet34_unstructure_prune_voc_{}.pt'.format(prune_level))
+        sched.step()
 
 def vanilla_prune(model, conv_prune=0.3, linear_prune=0.6):
     for name, module in model.named_modules():
@@ -212,27 +212,52 @@ def vanilla_prune(model, conv_prune=0.3, linear_prune=0.6):
             prune.l1_unstructured(module, name='weight', amount=conv_prune)
         elif isinstance(module, torch.nn.Linear):
             prune.l1_unstructured(module, name='weight', amount=linear_prune)
+    for name, module in model.named_modules():
+        if isinstance(module, torch.nn.Conv2d) or isinstance(module, torch.nn.Linear):
+            prune.remove(module, 'weight')
 
 # prune pass 1
 vanilla_prune(model, conv_prune=0.2, linear_prune=0.2)
-training(model, 0.2)
+training(model, "iter_0.2")
 # save_model(model, 'prune_pass_1.pt')
 
 # prune pass 2
 vanilla_prune(model, conv_prune=0.4, linear_prune=0.4)
-training(model, 0.4)
+training(model, "iter_0.4")
 # save_model(model, 'prune_pass_2.pt')
 
 # prune pass 3
 vanilla_prune(model, conv_prune=0.6, linear_prune=0.6)
-training(model, 0.6)
+training(model, "iter_0.6")
 # save_model(model, 'prune_pass_3.pt')
 
 # prune pass 4
 vanilla_prune(model, conv_prune=0.8, linear_prune=0.8)
-training(model, 0.8)
+training(model, "iter_0.8")
+# save_model(model, 'prune_pass_4.pt')
+
+# prune pass 4
+vanilla_prune(model, conv_prune=0.85, linear_prune=0.85)
+training(model, "iter_0.85")
 # save_model(model, 'prune_pass_4.pt')
 
 vanilla_prune(model, conv_prune=0.9, linear_prune=0.9)
-training(model, 0.9)
+training(model, "iter_0.9")
+# save_model(model, 'prune_pass_4.pt')
+
+# prune pass 4
+model.load_state_dict(torch.load('../saved_models/resnet34_pretrain_best_25.pt'))
+vanilla_prune(model, conv_prune=0.8, linear_prune=0.8)
+training(model, "oneshot_0.8")
+# save_model(model, 'prune_pass_4.pt')
+
+# prune pass 4
+model.load_state_dict(torch.load('../saved_models/resnet34_pretrain_best_25.pt'))
+vanilla_prune(model, conv_prune=0.85, linear_prune=0.85)
+training(model, "oneshot_0.85")
+# save_model(model, 'prune_pass_4.pt')
+
+model.load_state_dict(torch.load('../saved_models/resnet34_pretrain_best_25.pt'))
+vanilla_prune(model, conv_prune=0.9, linear_prune=0.9)
+training(model, "oneshot_0.9")
 # save_model(model, 'prune_pass_4.pt')
