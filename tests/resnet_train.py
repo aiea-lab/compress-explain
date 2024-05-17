@@ -18,6 +18,16 @@ import collections
 from xml.etree.ElementTree import parse as ET_parse
 device = torch.device(f"cuda:0") if torch.cuda.is_available() else 'cpu'
 
+import logging
+ 
+# Create and configure logger
+logging.basicConfig(filename="resnet_train.log",
+                    format='%(asctime)s %(message)s',
+                    filemode='w')
+ 
+# Creating an object
+logger = logging.getLogger()
+
 class VOCnew(datasets.VOCDetection):
     classes = ('aeroplane', 'bicycle', 'bird', 'boat',
                     'bottle', 'bus', 'car', 'cat', 'chair',
@@ -89,19 +99,16 @@ def validate(model, testLoader, loss_func):
             loss = loss_func(outputs, targets)
 
             losses.update(loss.item(), inputs.size(0))
-            if batch_idx == 0:
-                print(outputs[0])
-                print(targets[0])
 
         current_time = time.time()
-        print(
+        logger.info(
             'Test Loss {:.4f}\t\tTime {:.2f}s\n'
             .format(float(losses.avg), (current_time - start_time))
         )
     return losses.avg
 
 
-def train(model, optimizer, trainLoader, loss_func, epoch):
+def train(model, optimizer, sched, trainLoader, loss_func, epoch):
     train_batch_size = 128
     model.train()
     losses = AverageMeter(':.4e')
@@ -123,7 +130,7 @@ def train(model, optimizer, trainLoader, loss_func, epoch):
         if batch % print_freq == 0 and batch != 0:
             current_time = time.time()
             cost_time = current_time - start_time
-            print(
+            logger.info(
                 'Epoch[{}] ({}/{}):\t'
                 'Loss {:.4f}\t\t'
                 'Time {:.2f}s'.format(
@@ -132,6 +139,7 @@ def train(model, optimizer, trainLoader, loss_func, epoch):
                 )
             )
             start_time = current_time
+    sched.step()
 
 train_dataset = VOCnew(root=r'/tmp/public_dataset/pytorch/pascalVOC-data', image_set='train', download=True,
                 transform=transforms.Compose([
@@ -154,20 +162,20 @@ val_dataset = VOCnew(root=r'/tmp/public_dataset/pytorch/pascalVOC-data', image_s
 # model = resnet().to(device)
 
 class VocModel(nn.Module):
-    def __init__(self, num_classes, pretrained=True):
+    def __init__(self, num_classes, weights=None):
         super().__init__()
         # Use a pretrained model
-        self.network = models.resnet34(pretrained=pretrained)
+        self.network = models.resnet34(weights=weights)
         # Replace last layer
         self.network.fc = nn.Linear(self.network.fc.in_features, num_classes)
 
     def forward(self, xb):
         return self.network(xb)
 
-model = VocModel(num_classes=20, pretrained=False).to(device)
-model.load_state_dict(torch.load('../saved_models/resnet34_pretrain_best_9.pt'))
-epochs = 20
-max_lr = 0.0001
+model = VocModel(num_classes=20, weights=models.ResNet34_Weights.DEFAULT).to(device)
+# model.load_state_dict(torch.load('../saved_models/resnet34_pretrain_best_9.pt'))
+epochs = 30
+max_lr = 0.001
 grad_clip = 0.1
 weight_decay = 1e-4
 # opt_func = torch.optim.Adam
@@ -184,13 +192,14 @@ val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_w
 
 bst_loss = 1e10
 optimizer = torch.optim.Adam(model.parameters(), lr=max_lr, weight_decay = weight_decay)
-sched = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr, epochs=epochs,
-                                            steps_per_epoch=len(train_loader))
+# sched = torch.optim.lr_scheduler.LinearLR(optimizer, max_lr, epochs=epochs,
+#                                             steps_per_epoch=len(train_loader))
+sched = optim.lr_scheduler.CosineAnnealingLR(optimizer, epochs, 0.00001)
 
 for epoch in range(epochs):
-    train(model, optimizer, train_loader, loss_func, epoch)
+    train(model, optimizer, sched, train_loader, loss_func, epoch)
     loss = validate(model, val_loader, loss_func)
     if loss < bst_loss:
-        torch.save(model.state_dict(), '/persistentvol/compress-explain/saved_models/resnet34_pretrain_best_{}.pt'.format(epoch+10))
+        torch.save(model.state_dict(), '/persistentvol/compress-explain/saved_models/resnet34_pretrain_{}.pt'.format(epoch))
         bst_loss = loss
-        print('Saved best model to /persistentvol/compress-explain/saved_models/resnet34_pretrain_best_{}.pt'.format(epoch+10))
+        logger.info('Saved best model to /persistentvol/compress-explain/saved_models/resnet34_pretrain_{}.pt'.format(epoch))
