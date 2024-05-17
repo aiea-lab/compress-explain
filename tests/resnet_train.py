@@ -18,15 +18,7 @@ import collections
 from xml.etree.ElementTree import parse as ET_parse
 device = torch.device(f"cuda:0") if torch.cuda.is_available() else 'cpu'
 
-import logging
- 
-# Create and configure logger
-logging.basicConfig(filename="resnet_train.log",
-                    format='%(asctime)s %(message)s',
-                    filemode='w')
- 
-# Creating an object
-logger = logging.getLogger()
+fp = open('resnet.log', 'w')
 
 class VOCnew(datasets.VOCDetection):
     classes = ('aeroplane', 'bicycle', 'bird', 'boat',
@@ -101,7 +93,11 @@ def validate(model, testLoader, loss_func):
             losses.update(loss.item(), inputs.size(0))
 
         current_time = time.time()
-        logger.info(
+        print(
+            'Test Loss {:.4f}\t\tTime {:.2f}s\n'
+            .format(float(losses.avg), (current_time - start_time)), file=fp
+        )
+        print(
             'Test Loss {:.4f}\t\tTime {:.2f}s\n'
             .format(float(losses.avg), (current_time - start_time))
         )
@@ -130,7 +126,15 @@ def train(model, optimizer, sched, trainLoader, loss_func, epoch):
         if batch % print_freq == 0 and batch != 0:
             current_time = time.time()
             cost_time = current_time - start_time
-            logger.info(
+            print(
+                'Epoch[{}] ({}/{}):\t'
+                'Loss {:.4f}\t\t'
+                'Time {:.2f}s'.format(
+                    epoch, batch * targets.shape[0], len(trainLoader.dataset),
+                    float(losses.avg), cost_time
+                ), file=fp
+            )
+            print(
                 'Epoch[{}] ({}/{}):\t'
                 'Loss {:.4f}\t\t'
                 'Time {:.2f}s'.format(
@@ -175,8 +179,8 @@ class VocModel(nn.Module):
 model = VocModel(num_classes=20, weights=models.ResNet34_Weights.DEFAULT).to(device)
 # model.load_state_dict(torch.load('../saved_models/resnet34_pretrain_best_9.pt'))
 epochs = 30
-max_lr = 0.001
-grad_clip = 0.1
+max_lr = 0.0001
+grad_clip = None
 weight_decay = 1e-4
 # opt_func = torch.optim.Adam
 
@@ -202,4 +206,5 @@ for epoch in range(epochs):
     if loss < bst_loss:
         torch.save(model.state_dict(), '/persistentvol/compress-explain/saved_models/resnet34_pretrain_{}.pt'.format(epoch))
         bst_loss = loss
-        logger.info('Saved best model to /persistentvol/compress-explain/saved_models/resnet34_pretrain_{}.pt'.format(epoch))
+        print('Saved best model to /persistentvol/compress-explain/saved_models/resnet34_pretrain_{}.pt'.format(epoch), file=fp)
+        print('Saved best model to /persistentvol/compress-explain/saved_models/resnet34_pretrain_{}.pt'.format(epoch))
