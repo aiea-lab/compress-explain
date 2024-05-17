@@ -176,7 +176,7 @@ class VocModel(nn.Module):
 
 model = VocModel(num_classes=20).to(device)
 model.load_state_dict(torch.load('../saved_models/resnet34_pretrain_best_25.pt'))
-epochs = 10
+epochs = 20
 max_lr = 0.001
 grad_clip = 0.1
 weight_decay = 1e-4
@@ -222,25 +222,30 @@ training(model, "iter_0.2")
 # save_model(model, 'prune_pass_1.pt')
 
 # prune pass 2
+model.load_state_dict(torch.load('../saved_models/resnet34_unstructure_prune_voc_iter_0.2.pt'))
 vanilla_prune(model, conv_prune=0.4, linear_prune=0.4)
 training(model, "iter_0.4")
 # save_model(model, 'prune_pass_2.pt')
 
 # prune pass 3
+model.load_state_dict(torch.load('../saved_models/resnet34_unstructure_prune_voc_iter_0.4.pt'))
 vanilla_prune(model, conv_prune=0.6, linear_prune=0.6)
 training(model, "iter_0.6")
 # save_model(model, 'prune_pass_3.pt')
 
 # prune pass 4
+model.load_state_dict(torch.load('../saved_models/resnet34_unstructure_prune_voc_iter_0.6.pt'))
 vanilla_prune(model, conv_prune=0.8, linear_prune=0.8)
 training(model, "iter_0.8")
 # save_model(model, 'prune_pass_4.pt')
 
 # prune pass 4
+model.load_state_dict(torch.load('../saved_models/resnet34_unstructure_prune_voc_iter_0.8.pt'))
 vanilla_prune(model, conv_prune=0.85, linear_prune=0.85)
 training(model, "iter_0.85")
 # save_model(model, 'prune_pass_4.pt')
 
+model.load_state_dict(torch.load('../saved_models/resnet34_unstructure_prune_voc_iter_0.85.pt'))
 vanilla_prune(model, conv_prune=0.9, linear_prune=0.9)
 training(model, "iter_0.9")
 # save_model(model, 'prune_pass_4.pt')
