@@ -174,7 +174,7 @@ class VocModel(nn.Module):
     def forward(self, xb):
         return self.network(xb)
 
-model = VocModel(num_classes=20, pretrained=False).to(device)
+model = VocModel(num_classes=20).to(device)
 model.load_state_dict(torch.load('../saved_models/resnet34_pretrain_best_25.pt'))
 epochs = 10
 max_lr = 0.001
