@@ -151,6 +151,7 @@ train_dataset = VOCnew(root=r'/tmp/public_dataset/pytorch/pascalVOC-data', image
                     transforms.Pad(30),
                     transforms.RandomCrop(300),
                     transforms.RandomHorizontalFlip(),
+                    transforms.RandomRotation(degrees=20),
                     transforms.ToTensor(),
                     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
                 ]))
