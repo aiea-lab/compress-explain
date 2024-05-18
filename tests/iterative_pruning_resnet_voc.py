@@ -173,6 +173,15 @@ class VocModel(nn.Module):
 
     def forward(self, xb):
         return self.network(xb)
+    
+def get_sparsity_vanilla(model):
+    pruned = 0
+    num = 0
+    for name, layer in model.named_modules():
+        if isinstance(layer, torch.nn.Conv2d) or isinstance(layer, torch.nn.Linear):
+            pruned += torch.sum(layer.weight == 0)
+            num += torch.numel(layer.weight)
+    print("Pruned {} / {} = {}".format(pruned, num, pruned/num))
 
 model = VocModel(num_classes=20).to(device)
 model.load_state_dict(torch.load('../saved_models/resnet34_pretrain_best_25.pt'))
@@ -206,15 +215,20 @@ def training(model, prune_level):
             print('Saved best model to /persistentvol/compress-explain/saved_models/resnet34_unstructure_prune_voc_{}.pt'.format(prune_level))
         sched.step()
 
+    model.load_state_dict(torch.load('/persistentvol/compress-explain/saved_models/resnet34_unstructure_prune_voc_{}.pt'.format(name)))
+    for name, module in model.named_modules():
+        if isinstance(module, torch.nn.Conv2d) or isinstance(module, torch.nn.Linear):
+            prune.remove(module, 'weight')
+    torch.save(model.state_dict(), '/persistentvol/compress-explain/saved_models/resnet34_unstructure_prune_voc_{}.pt'.format(name))
+    get_sparsity_vanilla(model)
+
 def vanilla_prune(model, conv_prune=0.3, linear_prune=0.6):
     for name, module in model.named_modules():
         if isinstance(module, torch.nn.Conv2d):
             prune.l1_unstructured(module, name='weight', amount=conv_prune)
         elif isinstance(module, torch.nn.Linear):
             prune.l1_unstructured(module, name='weight', amount=linear_prune)
-    for name, module in model.named_modules():
-        if isinstance(module, torch.nn.Conv2d) or isinstance(module, torch.nn.Linear):
-            prune.remove(module, 'weight')
+
 
 # prune pass 1
 vanilla_prune(model, conv_prune=0.2, linear_prune=0.2)
