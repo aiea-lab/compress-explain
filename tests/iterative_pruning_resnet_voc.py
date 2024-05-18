@@ -28,6 +28,7 @@ from typing import Any, Dict, Tuple
 import collections
 from xml.etree.ElementTree import parse as ET_parse
 device = torch.device(f"cuda:0") if torch.cuda.is_available() else 'cpu'
+fp = open('resnet_prune.log', 'w')
 
 class VOCnew(datasets.VOCDetection):
     classes = ('aeroplane', 'bicycle', 'bird', 'boat',
@@ -100,14 +101,18 @@ def validate(model, testLoader, loss_func):
             loss = loss_func(outputs, targets)
 
             losses.update(loss.item(), inputs.size(0))
-            if batch_idx == 0:
-                print(outputs[0])
-                print(targets[0])
+            # if batch_idx == 0:
+            #     print(outputs[0])
+            #     print(targets[0])
 
         current_time = time.time()
         print(
             'Test Loss {:.4f}\t\tTime {:.2f}s\n'
             .format(float(losses.avg), (current_time - start_time))
+        )
+        print(
+            'Test Loss {:.4f}\t\tTime {:.2f}s\n'
+            .format(float(losses.avg), (current_time - start_time)), file=fp
         )
     return losses.avg
 
@@ -141,6 +146,14 @@ def train(model, optimizer, trainLoader, loss_func, epoch):
                     epoch, batch * targets.shape[0], len(trainLoader.dataset),
                     float(losses.avg), cost_time
                 )
+            )
+            print(
+                'Epoch[{}] ({}/{}):\t'
+                'Loss {:.4f}\t\t'
+                'Time {:.2f}s'.format(
+                    epoch, batch * targets.shape[0], len(trainLoader.dataset),
+                    float(losses.avg), cost_time
+                ), file=fp
             )
             start_time = current_time
 
@@ -182,6 +195,7 @@ def get_sparsity_vanilla(model):
             pruned += torch.sum(layer.weight == 0)
             num += torch.numel(layer.weight)
     print("Pruned {} / {} = {}".format(pruned, num, pruned/num))
+    print("Pruned {} / {} = {}".format(pruned, num, pruned/num), file=fp)
 
 model = VocModel(num_classes=20).to(device)
 model.load_state_dict(torch.load('../saved_models/resnet34_pretrain_best_25.pt'))
@@ -213,6 +227,7 @@ def training(model, prune_level):
             torch.save(model.state_dict(), '/persistentvol/compress-explain/saved_models/resnet34_unstructure_prune_voc_{}.pt'.format(prune_level))
             bst_loss = loss
             print('Saved best model to /persistentvol/compress-explain/saved_models/resnet34_unstructure_prune_voc_{}.pt'.format(prune_level))
+            print('Saved best model to /persistentvol/compress-explain/saved_models/resnet34_unstructure_prune_voc_{}.pt'.format(prune_level), file=fp)
         sched.step()
 
     model.load_state_dict(torch.load('/persistentvol/compress-explain/saved_models/resnet34_unstructure_prune_voc_{}.pt'.format(name)))
