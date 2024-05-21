@@ -230,11 +230,11 @@ def training(model, prune_level):
             print('Saved best model to /persistentvol/compress-explain/saved_models/resnet34_unstructure_prune_voc_{}.pt'.format(prune_level), file=fp)
         sched.step()
 
-    model.load_state_dict(torch.load('/persistentvol/compress-explain/saved_models/resnet34_unstructure_prune_voc_{}.pt'.format(name)))
+    model.load_state_dict(torch.load('/persistentvol/compress-explain/saved_models/resnet34_unstructure_prune_voc_{}.pt'.format(prune_level)))
     for name, module in model.named_modules():
         if isinstance(module, torch.nn.Conv2d) or isinstance(module, torch.nn.Linear):
             prune.remove(module, 'weight')
-    torch.save(model.state_dict(), '/persistentvol/compress-explain/saved_models/resnet34_unstructure_prune_voc_{}.pt'.format(name))
+    torch.save(model.state_dict(), '/persistentvol/compress-explain/saved_models/resnet34_unstructure_prune_voc_{}.pt'.format(prune_level))
     get_sparsity_vanilla(model)
 
 def vanilla_prune(model, conv_prune=0.3, linear_prune=0.6):
