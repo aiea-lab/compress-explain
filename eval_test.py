@@ -21,7 +21,7 @@ import layers
 device = torch.device(f"cuda:0") if torch.cuda.is_available() else 'cpu'
 print(device)
 
-train_dataset = VOCnew(root=r'/tmp/public_dataset/pytorch/pascalVOC-data', image_set='train', download=False,
+train_dataset = VOCnew(root=r'/tmp/public_dataset/pytorch/pascalVOC-data', image_set='train', download=True,
                 transform=transforms.Compose([
                     transforms.Resize(330),
                     transforms.Pad(30),
