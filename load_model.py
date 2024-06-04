@@ -401,8 +401,8 @@ class GraSP_VGG(nn.Module):
         y = self.classifier(x)
         return y
     
-def get_GraSP_VGG(fn):
-    model = GraSP_VGG().to(device)
+def get_GraSP_VGG(fn, cfg=None):
+    model = GraSP_VGG(cfg=cfg).to(device)
     ckpt = torch.load(fn)
     model.load_state_dict(ckpt, strict=False)
     return model.to(device)
@@ -423,4 +423,42 @@ def get_lottery_VGG(fn):
     model = GraSP_VGG(is_mask=True).to(device)
     ckpt = torch.load(fn)
     model.load_state_dict(ckpt['state_dict'], strict=True)
+    return model.to(device)
+
+def get_prune_scratch_VGG(fn, cfg=None):
+    cpkt = torch.load(fn)
+    cfg = []
+    for i in range(20):
+        if 'feature.{}.conv.weight'.format(i) in cpkt.keys():
+            cfg.append(cpkt['feature.{}.conv.weight'.format(i)].shape[0])
+        if i in [2, 4, 9, 14]:
+            cfg.append('M')
+    new_dict = {}
+    prev = 'conv'
+    prev_num = 0
+    cnt = 0
+    for k, v in cpkt.items():
+        if 'feature' in k and k.split('.')[2] != prev:
+            prev = k.split('.')[2]
+            cnt += 1
+            if 'conv' in k:
+                cnt += 1
+        if 'feature' in k:        
+            if int(k.split('.')[1]) - prev_num == 2:
+                cnt += 1
+            prev_num = int(k.split('.')[1])
+            new_dict['feature.{}.{}'.format(cnt, k.split('.')[3])] = v
+        else:
+            new_dict[k] = v
+    model = GraSP_VGG(cfg=cfg).to(device)
+    model.load_state_dict(new_dict, strict=False)
+    return model.to(device)
+
+def get_attribute_preserve_VGG(fn, cfg=None):
+    model = GraSP_VGG(cfg=cfg).to(device)
+    ckpt = torch.load(fn)
+    new_dict = {}
+    for k, v in ckpt['state_dict'].items():
+        new_dict[k[7:]] = v
+    model.load_state_dict(new_dict, strict=True)
     return model.to(device)
