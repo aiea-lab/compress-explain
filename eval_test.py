@@ -1,20 +1,20 @@
 import torch
 from torch import nn
 from torchvision import datasets, transforms, models
-import os
-import load_model
+# import os
+# import load_model
 import eval
-import numpy as np
-from pytorch_grad_cam import GradCAM
-from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
-from pytorch_grad_cam.utils.image import show_cam_on_image
-from PIL import Image
-import torchvision.transforms as T
-import numpy as np
-import torch.nn.utils.prune as prune
-import matplotlib.pyplot as plt
+# import numpy as np
+# from pytorch_grad_cam import GradCAM
+# from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
+# from pytorch_grad_cam.utils.image import show_cam_on_image
+# from PIL import Image
+# import torchvision.transforms as T
+# import numpy as np
+# import torch.nn.utils.prune as prune
+# import matplotlib.pyplot as plt
 from dataset import VOCnew
-from sklearn.metrics import average_precision_score, f1_score
+# from sklearn.metrics import average_precision_score, f1_score
 import resnet_model
 import layers
 
@@ -42,11 +42,11 @@ val_dataset = VOCnew(root=r'/tmp/public_dataset/pytorch/pascalVOC-data', image_s
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=32, shuffle=True)
 test_loader = torch.utils.data.DataLoader(val_dataset, batch_size=32, shuffle=False)
 
-def compute_mAP(labels,outputs):
-    AP = []
-    for i in range(labels.shape[0]):
-        AP.append(average_precision_score(labels[i],outputs[i]))
-    return np.mean(AP)
+# def compute_mAP(labels,outputs):
+#     AP = []
+#     for i in range(labels.shape[0]):
+#         AP.append(average_precision_score(labels[i],outputs[i]))
+#     return np.mean(AP)
 
 class VocModel(nn.Module):
     def __init__(self, num_classes, weights=None, mask=False, lottery=False, attribute_preserve=False, hydra=False):
