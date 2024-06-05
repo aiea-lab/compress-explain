@@ -135,9 +135,10 @@ def train(model, epochs=150, lr=0.001, decreasing_lr='80,120', wd=0, save='vanil
                 #         prune.remove(module, 'weight')
                     torch.save(model.state_dict(), './saved_models/{}_best.pt'.format(save))
                 # old_file = new_file
-    for name, module in model.named_modules():
-        if isinstance(module, torch.nn.Conv2d) or isinstance(module, torch.nn.Linear):
-            prune.remove(module, 'weight')
+    if not training:
+        for name, module in model.named_modules():
+            if isinstance(module, torch.nn.Conv2d) or isinstance(module, torch.nn.Linear):
+                prune.remove(module, 'weight')
     torch.save(model.state_dict(), './saved_models/{}_final.pt')
     
     print("Total Elapse: {:.2f}, Best Result: {:.3f}%".format(time.time()-t_begin, best_acc))
@@ -172,7 +173,9 @@ train_loader, test_loader = get10(batch_size=200, num_workers=4)
 # torch.save(pretrain_model.state_dict(), './saved_models/vanilla_pruning_one_shot.pt')
 
 model = VocModel(num_classes=10, weights=ResNet34_Weights.DEFAULT).to(device)
-train(model, epochs=50, lr=0.0001,  save='resnet34_cifar10_model', training=False)
+model.load_state_dict('./saved_models/resnet34_cifar10_model_best.pt')
+
+# train(model, epochs=50, lr=0.0001,  save='resnet34_cifar10_model', training=False)
 
 
 
