@@ -1,5 +1,6 @@
 import torch
 from torchvision import datasets, transforms, models
+from torchvision.models import ResNet34_Weights
 import os
 import load_model
 import pruning
@@ -170,7 +171,7 @@ train_loader, test_loader = get10(batch_size=200, num_workers=4)
 #         prune.remove(module, 'weight')
 # torch.save(pretrain_model.state_dict(), './saved_models/vanilla_pruning_one_shot.pt')
 
-model = VocModel(num_classes=10, weights='IMAGENET1K_V1').to(device)
+model = VocModel(num_classes=10, weights=ResNet34_Weights.DEFAULT).to(device)
 train(model, epochs=50, lr=0.0001,  save='resnet34_cifar10_model', training=False)
 
 
