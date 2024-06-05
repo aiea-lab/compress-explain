@@ -173,9 +173,9 @@ train_loader, test_loader = get10(batch_size=200, num_workers=4)
 # torch.save(pretrain_model.state_dict(), './saved_models/vanilla_pruning_one_shot.pt')
 
 model = VocModel(num_classes=10, weights=ResNet34_Weights.DEFAULT).to(device)
-model.load_state_dict(torch.load('./saved_models/resnet34_cifar10_model_best.pt'))
+# model.load_state_dict(torch.load('./saved_models/resnet34_cifar10_model_best.pt'))
 
-# train(model, epochs=50, lr=0.0001,  save='resnet34_cifar10_model', training=False)
+train(model, epochs=50, lr=0.0001,  save='resnet34_cifar10_model', training=True)
 
 
 
