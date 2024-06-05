@@ -537,3 +537,25 @@ def resnet34(*, weights: Optional[Tensor] = None, progress: bool = True, **kwarg
 
     return _resnet(BasicBlock, [3, 4, 6, 3], weights, progress, **kwargs)
 
+def resnet18(*, weights: Optional[Tensor] = None, progress: bool = True, **kwargs: Any) -> ResNet:
+    """ResNet-34 from `Deep Residual Learning for Image Recognition <https://arxiv.org/abs/1512.03385>`__.
+
+    Args:
+        weights (:class:`~torchvision.models.ResNet34_Weights`, optional): The
+            pretrained weights to use. See
+            :class:`~torchvision.models.ResNet34_Weights` below for
+            more details, and possible values. By default, no pre-trained
+            weights are used.
+        progress (bool, optional): If True, displays a progress bar of the
+            download to stderr. Default is True.
+        **kwargs: parameters passed to the ``torchvision.models.resnet.ResNet``
+            base class. Please refer to the `source code
+            <https://github.com/pytorch/vision/blob/main/torchvision/models/resnet.py>`_
+            for more details about this class.
+
+    .. autoclass:: torchvision.models.ResNet34_Weights
+        :members:
+    """
+    # weights = ResNet34_Weights.verify(weights)
+
+    return _resnet(BasicBlock, [2, 2, 2, 2], weights, progress, **kwargs)
