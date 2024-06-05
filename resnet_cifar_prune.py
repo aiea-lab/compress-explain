@@ -170,7 +170,7 @@ train_loader, test_loader = get10(batch_size=200, num_workers=4)
 #         prune.remove(module, 'weight')
 # torch.save(pretrain_model.state_dict(), './saved_models/vanilla_pruning_one_shot.pt')
 
-model = VocModel(num_classes=10, weights=models.resnet34.ResNet34_Weights.IMAGENET1K_V1).to(device)
+model = VocModel(num_classes=10, weights='IMAGENET1K_V1').to(device)
 train(model, epochs=50, lr=0.0001,  save='resnet34_cifar10_model', training=False)
 
 
