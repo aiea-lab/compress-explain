@@ -18,6 +18,7 @@ import resnet_model
 import layers
 
 device = torch.device(f"cuda:0") if torch.cuda.is_available() else 'cpu'
+print(device)
 
 
 def get10(batch_size, data_root='/tmp/public_dataset/pytorch', train=True, val=True, **kwargs):
