@@ -1,6 +1,6 @@
 import torch
 from torchvision import datasets, transforms, models
-from torchvision.models import ResNet34_Weights
+from torchvision.models import ResNet34_Weights, ResNet18_Weights
 import os
 import load_model
 import pruning
@@ -58,7 +58,7 @@ class VocModel(nn.Module):
     def __init__(self, num_classes=10, weights=None, mask=False, lottery=False, attribute_preserve=False, hydra=False):
         super().__init__()
         # Use a pretrained model
-        self.network = resnet_model.resnet34(weights=weights, mask=mask, lottery=lottery, attribute_preserve=attribute_preserve, hydra=hydra)
+        self.network = resnet_model.resnet18(weights=weights, mask=mask, lottery=lottery, attribute_preserve=attribute_preserve, hydra=hydra)
         # Replace last layer
         self.network.fc = layers.SubnetLinear(self.network.fc.in_features, num_classes) if hydra else nn.Linear(self.network.fc.in_features, num_classes)
 
@@ -172,28 +172,28 @@ train_loader, test_loader = get10(batch_size=200, num_workers=4)
 #         prune.remove(module, 'weight')
 # torch.save(pretrain_model.state_dict(), './saved_models/vanilla_pruning_one_shot.pt')
 
-model = VocModel(num_classes=10, weights=ResNet34_Weights.DEFAULT).to(device)
-# model.load_state_dict(torch.load('./saved_models/resnet34_cifar10_model_best.pt'))
+model = VocModel(num_classes=10, weights=ResNet18_Weights.DEFAULT).to(device)
+# model.load_state_dict(torch.load('./saved_models/resnet18_cifar10_model_best.pt'))
 
-train(model, epochs=50, lr=0.0001,  save='resnet34_cifar10_model', training=True)
+train(model, epochs=50, lr=0.0001,  save='resnet18_cifar10_model', training=True)
 
 
 
 # pretrain_model = load_model.get_GraSP_VGG('./saved_models/pretrain_best_lottery.pt')
-pruning.vanilla_prune(model, 0.18, 0.18)
-train(model, epochs=5, lr=0.00001,  save='resnet_cifar_prune_iterative_18')
-pruning.vanilla_prune(model, 0.18*2, 0.18*2)
-train(model, epochs=5, lr=0.00001,  save='resnet_cifar_prune_iterative_36')
-pruning.vanilla_prune(model, 0.18*3, 0.18*3)
-train(model, epochs=5, lr=0.00001,  save='resnet_cifar_prune_iterative_54')
-pruning.vanilla_prune(model, 0.18*4, 0.18*4)
-train(model, epochs=5, lr=0.00001,  save='resnet_cifar_prune_iterative_72')
-pruning.vanilla_prune(model, 0.18*5, 0.18*5)
-train(model, epochs=10, lr=0.00001,  save='resnet_cifar_prune_iterative_90')
+pruning.vanilla_prune(model, 0.16, 0.16)
+train(model, epochs=15, lr=0.00001,  save='resnet18_cifar_prune_iterative_16')
+pruning.vanilla_prune(model, 0.16*2, 0.16*2)
+train(model, epochs=15, lr=0.00001,  save='resnet18_cifar_prune_iterative_32')
+pruning.vanilla_prune(model, 0.16*3, 0.16*3)
+train(model, epochs=15, lr=0.00001,  save='resnet18_cifar_prune_iterative_48')
+pruning.vanilla_prune(model, 0.16*4, 0.16*4)
+train(model, epochs=15, lr=0.00001,  save='resnet18_cifar_prune_iterative_64')
+pruning.vanilla_prune(model, 0.16*5, 0.16*5)
+train(model, epochs=15, lr=0.00001,  save='resnet18_cifar_prune_iterative_80')
 
-model.load_state_dict(torch.load('./saved_models/resnet34_cifar10_model_best.pt'))
-pruning.vanilla_prune(model, 0.18*5, 0.18*5)
-train(model, epochs=10, lr=0.00001,  save='resnet_cifar_prune_one_shot_90')
+model.load_state_dict(torch.load('./saved_models/resnet18_cifar10_model_best.pt'))
+pruning.vanilla_prune(model, 0.16*5, 0.18*5)
+train(model, epochs=20, lr=0.00001,  save='resnet18_cifar_prune_one_shot_80')
 
 
 # for name, module in model.named_modules():
